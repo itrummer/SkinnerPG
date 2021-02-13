@@ -17,4 +17,8 @@ public class MasterConfig {
 	 * otherwise to zero.
 	 */
 	public static final int learningTimeThreshold = 0;
+	/**
+	 * Timeout per processing phase in milliseconds.
+	 */
+	public static final int perPhaseTimeout = 300000;
 }

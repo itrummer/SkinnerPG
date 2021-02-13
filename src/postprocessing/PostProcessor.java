@@ -3,6 +3,8 @@ package postprocessing;
 import java.util.List;
 
 import config.JoinConfig;
+import config.LogConfig;
+import config.MasterConfig;
 import config.NamingConfig;
 import connector.PgConnector;
 import expressions.ExpressionInfo;
@@ -41,7 +43,7 @@ public class PostProcessor {
 		sqlBuilder.append(substitutedExprList(
 				query.selectExpressions, true));
 		sqlBuilder.append(" FROM ");
-		// Deduplicate join result if necessary
+		// De-duplicate join result if necessary
 		if (JoinConfig.deleteProcessed) {
 			sqlBuilder.append(joinSummary.resultTable);	
 		} else {
@@ -67,9 +69,21 @@ public class PostProcessor {
 					query.orderByExpressions, false));
 		}
 		sqlBuilder.append(");");
-		PgConnector.update(sqlBuilder.toString());
+		boolean noTimeout = PgConnector.updateOrTimeout(
+				sqlBuilder.toString(), 
+				MasterConfig.perPhaseTimeout);
+		// Create empty final result table if required
+		if (!noTimeout) {
+			PgConnector.update("create table " + 
+					finalTable + " as (select 'timeout');");
+		}
+		// Report timeout if any
+		if (LogConfig.VERBOSE) {
+			System.out.println("Post-processing success: " + 
+					noTimeout);
+		}
 		// Return post-processing summary
-		return new PostSummary(finalTable);
+		return new PostSummary(finalTable, !noTimeout);
 	}
 	/**
 	 * Given a list of expressions, replace references to original table columns

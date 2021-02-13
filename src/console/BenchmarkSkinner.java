@@ -121,7 +121,17 @@ public class BenchmarkSkinner {
 			String queryID = "genericx";
 			System.out.println("Benchmarking " + entry.getKey());
 			if (benchSkinner) {
-				Master.execute(entry.getValue(), queryID);
+				try {
+					Master.execute(entry.getValue(), queryID);
+					// Output query result
+					String finalResultTable = NamingConfig.FINAL_TBL + queryID;
+					ResultSet SkinnerResult = PgConnector.query(
+							"SELECT * FROM " + finalResultTable + ";");
+					resultOut.println(entry.getKey());
+					printQueryResult(SkinnerResult, resultOut);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				// Write out execution time
 				timeOut.println(entry.getKey() + "\t" +
 						PreStats.lastMillis + "\t" + 
@@ -129,13 +139,7 @@ public class BenchmarkSkinner {
 						PostStats.lastMillis + "\t" + 
 						GeneralStats.lastExecutionTime + "\t" +
 						GeneralStats.lastNonBatchedTime + "\t" +
-						GeneralStats.lastUsedLearning);				
-				// Output query result
-				String finalResultTable = NamingConfig.FINAL_TBL + queryID;
-				ResultSet SkinnerResult = PgConnector.query(
-						"SELECT * FROM " + finalResultTable + ";");
-				resultOut.println(entry.getKey());
-				printQueryResult(SkinnerResult, resultOut);
+						GeneralStats.lastUsedLearning);
 			} else {
 				long startMillis = System.currentTimeMillis();
 				//PgConnector.update("SET enable_nestloop = false");

@@ -26,10 +26,16 @@ public class Preparator {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+		// Check for command line arguments
+		if (args.length < 2) {
+			System.out.println("Error - specify database, user name, ");
+			System.out.println("and (optionally) database password. ");
+			return;
+		}
 		// Create connection based on command line parameters
 		String dbName = args[0];
 		String userName = args[1];
-		String password = args[2];
+		String password = args.length<3?"":args[2];
 		PgConnector.connect("jdbc:postgresql:" + dbName, 
 				userName, password);
 		// Get list of tables to prepare

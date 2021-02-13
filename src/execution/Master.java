@@ -1,9 +1,12 @@
 package execution;
 
 import config.JoinConfig;
+import config.LearningAlg;
+import config.LogConfig;
 import config.MasterConfig;
 import config.NamingConfig;
 import connector.PgConnector;
+import joining.BatchedExecutor;
 import joining.JoinProcessor;
 import joining.JoinSummary;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -63,8 +66,37 @@ public class Master {
 				joinSummary = JoinProcessor.process(
 						query, preSummary, queryID);
 				break;
+			case PRE_PG_OPT:
+			{
+				// Log Master version number
+				if (LogConfig.VERBOSE) {
+					System.out.println("Version 1.1");
+				}
+				GeneralStats.lastNonBatchedTime = -1;
+				// Generate names for intermediate result relations
+				String joinResultTable = NamingConfig.JOIN_TBL + queryID;
+				String finalResultTable = NamingConfig.FINAL_TBL + queryID;
+				// Prepare execution
+				PgConnector.dropTable(joinResultTable);
+				PgConnector.dropTable(finalResultTable);
+				BatchedExecutor executor = new BatchedExecutor(
+						query, preSummary, joinResultTable);
+				// Configure Postgres
+				PgConnector.disableBatchConfiguration();
+				PgConnector.enableJoinOrderOptimization();
+				// Join tables resulting from pre-processing
+				String sql = JoinProcessor.traditionalQuery(query, 
+						preSummary, joinResultTable, executor);
+				PgConnector.updateOrTimeout(sql, 
+						MasterConfig.perPhaseTimeout);
+				// This setting will trigger post-processing
+				joinSummary = new JoinSummary(joinResultTable, 
+						executor.joinResultColumns, false);
+			}
+				break;
 			}
 			JoinStats.lastMillis = System.currentTimeMillis() - joinStart;
+			PgConnector.setNoTimeout();
 			// Post-processing
 			long postStart = System.currentTimeMillis();
 			if (!joinSummary.finishedPostProceccing) {

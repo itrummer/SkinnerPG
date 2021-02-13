@@ -8,5 +8,8 @@ package config;
  *
  */
 public enum LearningAlg {
-	UCT, BRUE
+	UCT, 		// select join orders via UCT 
+	BRUE, 		// select join orders via BRUE
+	PRE_PG_OPT	// select join orders via PG optimizer
+				// after executing pre-processing step
 }

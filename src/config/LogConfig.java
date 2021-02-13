@@ -20,7 +20,7 @@ public class LogConfig {
 	 * Whether to produce verbose output
 	 * (careful, can impact performance!).
 	 */
-	public static final boolean VERBOSE = false;
+	public static final boolean VERBOSE = true;
 	/**
 	 * Print out every i-th progress update message.
 	 */

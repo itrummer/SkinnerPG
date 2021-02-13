@@ -65,7 +65,7 @@ public class JoinProcessor {
 	 * 							generated during its initialization)
 	 * @return	SQL query that would finish processing
 	 */
-	static String traditionalQuery(QueryInfo query, PreSummary preSummary, 
+	public static String traditionalQuery(QueryInfo query, PreSummary preSummary, 
 			String joinResultTable, BatchedExecutor executor) {
 		StringBuilder sqlBuilder = new StringBuilder();
 		sqlBuilder.append("INSERT INTO ");
@@ -193,6 +193,13 @@ public class JoinProcessor {
 				// Scale up budget per approach
 				roundsToSwitch *= JoinConfig.roundsToSwitchScaleUp;				
 			}
+			// Output instructions for running optimized query in PG
+			int[] dominantOrder = uctRoot.dominantOrder();
+			String reorderedQuery = query.reorderedQuery(dominantOrder);
+			System.out.println("--- Try this in Postgres ---");
+			System.out.println("set join_collapse_limit = 1;");
+			System.out.println(reorderedQuery + ";");
+			System.out.println("-------");
 		}
 		// Return summary
 		return new JoinSummary(joinResultTable, 

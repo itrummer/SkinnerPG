@@ -18,7 +18,8 @@ public class JoinConfig {
 	/**
 	 * Choose reinforcement learning algorithm used.
 	 */
-	public static final LearningAlg learningAlg = LearningAlg.BRUE;
+	public static final LearningAlg learningAlg = 
+			LearningAlg.PRE_PG_OPT;
 	/**
 	 * Whether to enable nested loop join in non-batched processing mode.
 	 */
